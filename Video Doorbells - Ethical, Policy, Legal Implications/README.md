@@ -1,2 +1,2 @@
-# mids
+# Internet-Connected Video Doorbells: Ethical, Privacy, and Legal Concerns
 This is the final report I authored for the MIDS _Behind the Data: Humans and Values_ course.  In this report I examine the ethical, privacy, and legal implications for Internet-connected video doorbells (ICVDs) in detail and suggest mitigation strategies for some of the identified concerns.  Moreover, I provide a brief discussion of how frameworks like [The Digital Standard]{https://thedigitalstandard.org/} may be used going forward to systematically evaluate ICVDs and other technology products on the grounds of design, privacy, and ethics.
