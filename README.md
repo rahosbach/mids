@@ -1,2 +1,2 @@
 # mids
-Projects done as part of UC Berkeley's Master of Information and Data Science (MIDS) program
+This repository contains projects I completed as part of UC Berkeley's Master of Information and Data Science (MIDS) program.  Some of the projects I completed alone, and for others I was part of a larger team.  The projects provided herein cover a range of data science-related topics, from statistics and machine learning to ethics and privacy considerations.  Coding projects were completed using R or Python, and LaTeX was used to author most of the reports.
