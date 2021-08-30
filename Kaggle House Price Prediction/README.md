@@ -1,0 +1,4 @@
+# Kaggle House Price Prediction
+The notebook contained in this repository contains the work that my four-person team completed in developing a machine learning model to estimate house prices in Ames, Iowa (this is an existing [Kaggle competition](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/overview)).  Our work consisted of initial EDA followed by model development, all in Python.  Our eventual final model used a stacking approach with a variety of different model types in the stack, including ridge and lasso regression, extreme gradient boosted trees, and a neural network.  We ultimately achieved a rank on the Kaggle leaderboard within the top 11% of current entries.
+
+For this project, I led the EDA effort (using `pandas-profiling`), explored various ways of encoding categorical data into numerical features (including one-hot encoding and ordinal encoding), and developed and tuned `XGBRegressor()` and `RandomForestRegressor()` models.
