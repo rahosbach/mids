@@ -1,0 +1,6 @@
+# Examining the Effect of Laws on U.S. Traffic Fatalities
+This final report contains the work that my partners and I completed in analyzing a panel (longitudinal) data set consisting of 25 years of data for the 48 continental U.S. states.  Our work consisted of initial EDA followed by developing pooled OLS and fixed effects regression models to fit the data.  As per the report's conclusion:
+
+> *Using robust standard errors, we conclude that "per se" laws, speed limit laws greater than or equal to 70 mph, the logarithm of unemployment rate, and vehicle miles traveled per capita have significant effects on the log of the total fatality rate per 100,000 population. We also found that blood alcohol limit laws at 10% is marginally significant, and all of our year dummy variables are highly statistically significant, indicating there are potentially some unobserved effects being captured by the dummy variables that lead to decreases in fatality rate (_e.g._, improvements in engineering over the 24 years leading to safer cars in cases of an accident).*
+
+For this project, my partners and I worked through the entire analysis alone and then we combined the best pieces of our individual work into this final report.  As a result, I performed work covering every aspect of this final report (from EDA to regression modeling and report writing).
