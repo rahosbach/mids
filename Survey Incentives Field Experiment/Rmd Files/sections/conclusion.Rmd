@@ -1,0 +1,7 @@
+# Conclusion
+
+In higher education, surveying is an important technique used to gather important feedback and make improvements to the programs. Studies have shown that monetary incentives can improve survey response rates. In our field experiment, we set out to understand the effects of two incentives---a direct financial incentive and a philanthropic incentive---on survey response rates among UC Berkeley Master of Information and Data Science (MIDS) alumni. 
+
+Our experiment was not able to find statistically significant positive effects on response rate. On the contrary, we found negative effects from our incentives on survey response rates. The negative effect of direct incentive is significant at the 10% significance level, while the effect of philanthropic incentive is not statistically significant. We also observed some heterogeneous treatment effects, such as female alumni responding more favorably to the philanthropic incentive.  But, none of the heterogeneous treatment effects were statistically significant.
+
+The findings from this experiment suggests that monetary incentives are overall not effective at increasing survey response rates among MIDS alumni. We do not expect the results of this experiment to generalize well to other educational programs.  However, future work could investigate the generalizability of our results and also analyze the reasons behind monetary incentives being less effective at encouraging higher survey response rates. The findings can contribute to the survey practices in graduate schools and higher education.

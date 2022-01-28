@@ -1,0 +1,173 @@
+# Methodology
+
+In this section we explain the key components of our experimental design, including our sampling frame; data collection and blocking; power analysis; survey design and email sending strategy; identification of compliers, non-compliers, and attriters; and calculation of treatment effects.
+
+## Scraping alumni data
+
+To obtain the official UC Berkeley School of Information (hereafter referred to as UCB I School) email addresses for all MIDS alumni, our team wrote a Python script to scrape selected pages from the UCB I School website's people directory [@noauthor_people_2021].  The script relies on the Selenium package for Python, an open-source tool for browser automation [@muthukadan_selenium_2021].  We provide the script for reference in Appendix B. 
+
+Specifically, the team scraped information from all pages listing MIDS graduates, of which the website lists 1,105 as of the end of Spring 2021.  These 1,105 alumni represent the sampling frame for this experiment.  The web pages include not only the I School email address of each alumnus, but also the person's name and graduation year.^[The scraped data did not contain two email addresses and one graduation year.  We identified the email addresses using the UCB I School Slack workspace and validated the missing grladuation year using LinkedIn.]
+
+## Blocking
+
+In order to improve the precision of our estimated causal effect, we randomly assigned the 1,105 alumni into the control and two treatment groups using blocks based on graduation year (2015-2021) and gender (male, female, or unknown).  We expect blocking on graduation year to improve the precision of our estimated causal effect because of the likelihood that earlier MIDS graduates might have lost connection with the I School community relative to more recent graduates, leading to lower survey response rates, on average, for earlier graduates.  Similarly, we blocked on gender because some studies have found that women may respond to surveys at higher rates than men in a variety of contexts [_e.g._, @smith_does_2008].
+
+The UCB I School website's people directory does not provide alumni gender designations.  Therefore, we inferred each alumnus' gender based on the person's name and photograph (from the people directory or LinkedIn, if available).^[We used a binary gender designation: male or female.  Without more data, we could not make more specific gender designations.  Additionally, blocking based on more disaggregated gender designations seems unlikely to improve the precision of our causal effect estimate relative to a binary gender designation.]  Out of the 1,105 MIDS alumni, we classified 789 (71.4%) as male and 299 (27.1%) as female.  We classified the remaining 17 (1.5%) alumni as "unknown" because we did not have enough information to confidently classify them as male or female.
+
+We used the blockTools library in R to block-randomize the 1,105 alumni into the control and two treatment groups by blocking on graduation year and inferred gender [@moore_package_2016].  Figure \@ref(fig:blocks-table) shows the number of alumni assigned to each of the three groups by graduation year and gender.  Each cell in Figure \@ref(fig:blocks-table) contains three numbers, which correspond to the number of alumni assigned to each of three groups (control and two treatment) for that block.  For a given block, we assign the same number of alumni to each group, when possible.  In cases where the number of alumni in the block do not evenly divide into three groups, the number of alumni assigned to each group for a given block never differs by more than one.
+
+```{r blocks-table, echo=FALSE, fig.align = "center", out.width = "75%", fig.cap = "Number of MIDS alumni block-randomized into each of three groups (control and two treatment) based on inferred gender and graduation year", }
+knitr::include_graphics(here::here("report/images", "blocks_table.png"))
+```
+
+## Power analysis
+
+We conducted a power analysis in advance of running our experiment to determine the likelihood that we would detect a significant effect if the effect were real.  The studies referenced in the Introduction provide a range of survey incentive effects in different contexts.  @debell_improving_2020 observed an increase in response rate from 43% to 47% (a 4% effect) by making a cash incentive plainly visible in a physically mailed envelope.  In contrast, @pedersen_improving_2016 found a variety of effects that ranged from -3.5% given a philanthropic incentive to 4.5% given an egotistic text appeal treatment.
+
+We used Alexander Coppock's Power Calculator application to perform this analysis [@coppock_power_2021].  The application requires certain inputs that we set as follows:
+
+* **Binary dependent variable:** selected
+* **Significance level:** 0.05
+* **Proportion (DV = 1) in Control Group:** 0.1
+* **Proportion (DV = 1) in Treatment Group:** 0.2
+* **Power Target:** 0.8
+
+The inputs indicate that we expect a control group response rate of 10%, and we hope (likely optimistically) to observe treatment group response rates of 20%.  Given these assumptions, the application's output indicates that we need a sample size of at least 393 people to detect a difference between the control group and treatment group at the 5% significance level with 80% power.  This breaks out to roughly 196 people per group, and we assigned approximately 370 alumni to each of our three groups.  Therefore, our experiment can detect such a difference with more than 80% power.  For reference, changing the assumed response rate in the treatment group from 20% to 15% while keeping the control group's response rate at 10% means we would need a sample size of 1,366 to achieve 80% power.  This breaks out to 683 people per group, which is nearly double the allotment in our experiment.  According to the application, with our group sizes of roughly 370 alumni, we can only detect this difference at a 5% significance level with 54% power.  In sum, our experiment will lack sufficient power to detect an effect if we observe small differential response rates between the control and treatment groups.
+
+## Experimental design and survey delivery architecture
+
+Our experiment followed a progression of randomization, treatment, and outcome measurement.  Figure \@ref(fig:roxo-table) depicts the ROXO representation of our experiment.  We applied the same ROXO design to each of the 21 blocks we randomized within (denoted by the blue arrows).  In Figure \@ref(fig:roxo-table), "R" represents the block-randomization step, "X~1~" and "X~2~" represent the different treatment emails sent to the direct and philanthropic incentive groups, and "O" represents measurement of survey completions (our outcome).
+
+```{r roxo-table, echo=FALSE, fig.align = "center", out.width = "75%", fig.cap = "ROXO construct applied to each of the 21 randomization blocks"}
+knitr::include_graphics(here::here("report/images", "roxo_table.png"))
+```
+
+We delivered the control and treatment messages to the three groups of MIDS alumni using emails sent from Devesh Khandelwal's personal I School email address (deveshkhandelwal@berkeley.edu).  (We found from testing that using a less personal email address resulted in more of our emails landing in recipients' "promotions" or "social" Gmail inboxes, rather than their "primary" inboxes.) 
+
+We used identical email subject lines for all three groups for the initial emails as well as the reminder emails (see Table \@ref(tab:email-subjects)).  Moreover, we kept the body text of the emails identical for all three groups, except for the specific treatment text that we accentuated using bold typeface.
+
+```{r email-subjects, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Email = c("Initial (July 2, 2021)", "July 9 and 16, 2021 Reminders",
+              "July 22, 2021 Reminder", "July 23, 2021 Reminder"),
+    Subject = c(
+      "<<Alumnus Name>>-How Can MIDS Improve? Voice Your Opinion",
+      "Reminder: <<Alumnus Name>>-How Can MIDS Improve? Voice Your Opinion",
+      "ONE DAY LEFT : <<Alumnus Name>>-How Can MIDS Improve? Voice your opinion",
+      "CLOSING TONIGHT: <<Alumnus Name>>-How Can MIDS Improve? Voice your opinion")),
+  booktabs = TRUE,
+  caption = "Email subject lines for the initial and reminder emails"
+) %>% column_spec(2, width = "30em")
+```
+
+For all three groups, the treatment text indicates that alumni who complete the survey will receive a summary of the survey results.  In addition, we told the direct incentive group that we will enter alumni who complete the survey into a drawing to win a \$25 Amazon gift card, and we told the philanthropic incentive group that if the overall survey response rate reached 60%, we would donate \$250 to the Berkeley Student Food Collective.  Table \@ref(tab:email-text) shows the treatment text for all three groups, and Appendix A includes the original and reminder email templates sent to all three groups.
+
+```{r email-text, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Group = c("Control", "Direct incentive", "Philanthropic incentive"),
+    Subject = c(
+      "If you complete the survey, we will send you a summary of the results.",
+      "If you complete the survey, we will send you a summary of the results and you will be entered to win an Amazon gift card for $25. Ten respondents will be selected at random to receive a gift card.",
+      "If you complete the survey, we will send you a summary of the results. Additionally, if we achieve a 60% response rate, we will donate $250 to the Berkeley Student Food Collective.")),
+  booktabs = TRUE,
+  caption = "Treatment email text for the control and two treatment groups"
+) %>% column_spec(2, width = "30em")
+```
+
+We measured survey completions as the outcome metric for our experiment.  We designed a two-part survey using Qualtrics to ask about the perceived value of various aspects of the MIDS program (part one) as well as to understand the respondent's rationale for enrolling in MIDS (part two).  We hypothesized that having a survey directly related to the MIDS experience and perceived benefits would invoke higher response rates among MIDS alumni.  The first part asks the respondent to evaluate eight statements using a Likert scale.  The second part asks the respondent to answer a single multiple choice question.  We developed the survey so that respondents could complete it in 2-3 minutes, in order to maximize the likelihood of any given alumnus completing the survey.  We provide the survey questions and a high-level results summary in Appendix C.
+
+## Sending emails and reminders
+
+We sent initial emails to the control and two treatment groups on Friday, July 2, 2021 using Yet Another Mail Merge (YAMM).  The YAMM service took approximately 12 minutes to send the emails to the 370 (approximately) alumni in each group.  Table \@ref(tab:email-times) indicates the start times for sending emails to each group.
+
+```{r email-times, echo=FALSE}
+knitr::kable(
+  data.frame(
+    Group = c("Direct incentive", "Philanthropic incentive", "Control"),
+    `Email Batch Start Time on July 2, 2021 (PDT)` = c(
+      "9:26 am",
+      "10:14 am",
+      "10:40 am"),
+    check.names = FALSE),
+  booktabs = TRUE,
+  caption = "Start times for sending initial emails to the control and two treatment groups"
+)
+```
+
+In addition to the initial email that we sent to all 1,105 alumni, we sent four follow-up reminder emails.  We sent the first reminder email to all 1,105 alumni starting at 9:00 am (PDT) on July 9, 2021 (even to those who had already completed the survey).  We sent the remaining three reminder emails starting at 9:15 am (PDT) on July 16, 8:00 am (PDT) on July 22, and 9:15 am (PDT) on July 23, 2021 only to alumni who had not already completed the survey by the evening prior to sending the emails.  Figure \@ref(fig:emails-survey) shows the cumulative number of completed surveys over time, with dashed lines signifying when we sent emails.  The figure shows a clear pattern of a sharp increase in survey responses immediately after we sent the emails, with diminishing returns over time.
+
+```{r emails-survey, echo=FALSE, fig.align = "center", out.width = "90%", fig.cap = "Cumulative survey completions over the experimental period with initial and reminder email send dates indicated by dashed vertical lines"}
+d <- read.csv("../../data/Qualtrics_downloaded_20210726.csv")
+d <- d[3:nrow(d),]
+
+cumsums <- d %>% 
+  mutate(RecordedDate=mdy_hm(RecordedDate)) %>% 
+  group_by(RecordedDate) %>% 
+  summarise(Count=n()) %>% 
+  mutate(CumCount=cumsum(Count))
+
+emails <- data.frame(
+  SentDate = c("7/2/2021 09:26", "7/9/2021 09:00", "7/16/2021 09:15",
+           "7/22/2021 08:00", "7/23/2021 09:15"),
+  Label = c("Initial email", "1st reminder", "2nd reminder",
+            "3rd reminder", "Last reminder")
+) %>% mutate(SentDate=mdy_hm(SentDate))
+
+cumsums %>% ggplot(aes(x=RecordedDate, y=CumCount)) +
+  geom_line() +
+  geom_vline(aes(xintercept=SentDate), data=emails, linetype="dashed", color="black") +
+  theme_bw() +
+  #scale_x_datetime(breaks = pretty_breaks(8)) +
+  scale_x_datetime(breaks = mdy_hm(c("7/2/2021 00:00", "7/9/2021 00:00", "7/16/2021 00:00",
+                                          "7/23/2021 00:00")),
+                   labels = date_format("%B %d, %Y")) +
+  labs(x="Date",
+       y="Cumulative Survey Responses",
+       title="Cumulative Survey Responses over Experimental Period")
+```
+
+## Identifying compliers, non-compliers, and attriters
+
+The YAMM service provides a near-real time merge status indicator for each email that it sends.  YAMM labels each email as sent, opened, clicked, responded, bounced, or unsubscribed; however, YAMM does not guarantee 100% accuracy in applying these labels [@noauthor_how_nodate].  Between the different email batch sends, we noticed inconsistencies in the labeling.  For instance, we observed some alumni with bounced emails after sending the first reminder email who did not have their initial email bounce.  We also observed the opposite, where alumni with emails that initially bounced were later relabeled as opened.  We investigated these inconsistencies and applied the following assumptions to our data in order to identify attriters, compliers, and non-compliers:
+
+* We considered any alumni with initial emails that were labeled as bounced right after sending to have inactive email accounts, and therefore we assumed all subsequent emails bounced as well (regardless of the actual labels YAMM applied).
+* We considered any alumni with all emails labeled as sent (not opened, clicked, or responded) to have received, but not opened, any of their emails.
+* We assumed the remaining alumni received and opened at least one of their emails, thereby exposing themselves to the treatment text contained in the email.
+
+We placed the treatment text specific to the control, direct incentive, and philanthropic incentive groups in the body of the emails, rather than in the email subject lines.  This allowed us to define a complier as someone who opened the email, given the assumption that if the person opened the email they read the treatment text.  (Alternatively, we could have defined compliance as reception of the email; however, that criterion seemed too lenient for assuming the recipient actually received the treatment.)  We therefore identified compliers as those alumni for whom YAMM reported that they opened, clicked, or responded to at least one of the emails we sent them.  Conversely, we define non-compliers as those who receive at least one of the emails, but never open any emails they receive.  As a result, these alumni never receive a dosage of the treatment corresponding to the group to which we assigned them.  We identified non-compliers in our study as those for whom the email did not bounce, and YAMM reported that the person never opened, clicked, or responded to any of the emails we sent them.  Finally, we define attriters as those alumni who never receive any of the emails we sent them.  We deemed any alumni for whom YAMM reported a bounced email from our initial email batch an attriter.  The flow diagram in Figure \@ref(fig:flow-diagram) shows the number of alumni in each group after accounting for attriters and non-compliers.  In total, 229 MIDS alumni completed the survey, providing an overall response rate of approximately 21%.
+
+```{r flow-diagram, echo=FALSE, fig.align = "center", out.width = "90%", fig.cap = "Flow diagram indicating the number of MIDS alumni by group after accounting for attrition and non-compliance"}
+knitr::include_graphics(here::here("report/images", "flow_diagram.png"))
+```
+
+## Data flow and aggregation
+As highlighted in the previous sections, our data come from three main sources:
+
+* Alumni scrape: consists of alumni details that we obtain from web scraping.
+* YAMM: data from the mail-merge tool that helps track the status of emails we sent.
+* Qualtrics: the survey platform we used that provides information on survey respondents.
+
+Figure \@ref(fig:data-flow-diagram) represents the high-level data flow and aggregation of our data sources to arrive at our final data source for analysis.
+
+```{r data-flow-diagram, echo=FALSE, fig.align = "center", out.width = "75%", fig.cap = "Summary diagram of data flows and aggregation" }
+#setwd('home/w241_alumni_survey')
+
+knitr::include_graphics(here::here("report/images", "Data_flow_2.PNG"))
+```
+
+## Calculating treatment effects
+
+For this experiment, we calculated the following treatment effects: intent-to-treat (ITT) effect, complier-average causal effect (CACE), and heterogeneous treatment effects (HTEs) using gender and graduation year subgroups.  When calculating these treatment effects, we omitted attriters from the analysis.  We omitted attriters for two reasons: 1) We do not have a measured outcome for these alumni, and 2) Omitting attriters should not bias our estimated treatment effects because the group assignment has no influence on whether or person's email account is active or not (which determines whether an email bounces).
+
+The ITT effect calculation provides an estimated treatment effect based only on the group assignment.  Given our concerns regarding the accuracy of our compliance data, we chose to use the ITT as our primary treatment effect.  The CACE, in contrast, does require knowledge of the number of compliers and non-compliers in each group.  Due to the aforementioned issues with YAMM, obtaining these estimates required us to make assumptions about who actually opened at least one of the emails they received.  As a result, we do not have as much trust in our CACE estimates as we do for our ITT effect estimates.  Finally, we analyzed HTEs for gender and graduation year subgroups based only on group assignment.  This allowed us to avoid making compliance assumptions, and it means that one should interpret the estimates we obtained as heterogeneous ITT effects.
+
+## Analysis assumptions
+
+To obtain unbiased causal effect estimates, we satisfied a series of key assumptions:
+
+* **Exclusion restriction:** We assume that potential outcomes in our experiment respond only to the treatment a subject receives, and not the group assignment we gave the subject or any other causal pathway.  While we cannot verify this assumption empirically, we have no reason to believe that the exclusion restriction is violated in our experiment. 
+* **Non-interference:** We assume that no subjects are affected by treatment of other subjects in our experiment.  We sent personal emails containing specific treatment text according to each subject's group assignment, which prevents interference.  While it remains possible that some MIDS alumni discussed the survey and emails we sent them, we assume no spillover effects due to the small likelihood of that occurring.
+* **Monotonicity:** We assume that none of our subjects are defiers (_i.e._, people who receive treatment when assigned to control, or vice-versa).  We can safely make this assumption due to the personal emails we sent each MIDS alumnus. 
+

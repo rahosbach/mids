@@ -1,0 +1,4 @@
+\allsectionsfont{\centering}
+# Abstract
+
+Studies have shown a variety of effects from different incentives to increase survey response rates.  We conduct an experiment to test whether a direct financial incentive or a philanthropic incentive cause increased survey response rates among 1,105 alumni of the UC Berkeley I School's Master of Information and Data Science program.  Surprisingly, we find that both incentives caused lower survey response rates, with the direct financial incentive causing significant intent-to-treat and complier average causal effects of approximately -6% and -10%, respectively.  While these results likely do not generalize beyond the current population of MIDS alumni that comprised our sample frame, future research that evaluates different incentive levels and incentive types on survey response rates may prove fruitful for determining more general best practices for increasing survey response rates among graduate school alumni.

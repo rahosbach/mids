@@ -1,0 +1,85 @@
+# Appendix B: Scraping MIDS Alumni Data
+
+This appendix contains the Python script we used to scrape the name, email, and graduation date for each MIDS alumnus from the UC Berkeley School of Information website's people directory.
+
+```{r engine="python", eval=FALSE, include=TRUE}
+from collections import namedtuple # Facilitate collect/convert into Pandas
+import time # To pause between page loads
+ 
+from bs4 import BeautifulSoup # To parse the HTML pages
+import pandas as pd
+# Selenium allows us to open a web browser and act on web pages programmatically
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+ 
+ 
+# Open a Chrome browser
+driver = webdriver.Chrome()
+
+# This file contains a person's username and password
+# (each on its own line) for logging into I-School
+with open("creds.txt", "r") as file: 
+    creds = file.readlines()
+ 
+# Navigate to login page and authenticate
+driver.get("https://www.ischool.berkeley.edu/user/login?destination=home") 
+username = driver.find_element_by_id("edit-name") # Find the username entry
+password = driver.find_element_by_id("edit-pass") # Find the password entry
+username.send_keys(creds[0].strip()) # Fill in the username
+password.send_keys(creds[1].strip()) # Fill in the password
+driver.find_element_by_id("edit-submit").click() # Click the login button
+ 
+# Navigate to first page of alumni, then pause for 5 seconds for loading
+start_url = (
+  "https://www.ischool.berkeley.edu/people?name=&role=126&degr=MIDS" +
+  "&year%5Bvalue%5D%5Byear%5D=&spec=All&emp=&faculty_type=All"
+)
+driver.get(start_url)
+time.sleep(5)
+ 
+# Initialize namedtuple for data collection
+Alumni = namedtuple('Alumni', ["name", "cohort", "email"])
+# This list will store `Alumni` namedtuples for each person
+all_data = []
+ 
+# Scrape all data we can for each page
+flag = True
+page = 1
+while flag:
+    print(f"Starting page {page}.")
+    # Get the HTML from the current browser page
+    soup = BeautifulSoup(driver.page_source, 'html5lib') 
+    
+    # This is a way to get a list of "chunks" of the HTML that
+    # correspond to a given alumnus
+    data = [x.parent.text.strip() for x in soup.find_all(
+              "div",
+              class_='views-field views-field-field-profile-fullname')
+    ]
+    
+    for person in data:
+        name = str(person.split("\n")[0].strip()) # 1st item is always the name
+        try:
+            # If an entry contains "20," that's the cohort
+            cohort = str([x.strip() for x in person.split("\n") if "20" in x][0]) 
+        except IndexError:
+            cohort = ""
+        try:
+            # If an entry contains "@," that's the email
+            email = str([x.strip() for x in person.split("\n") if "@" in x][0]) 
+        except IndexError:
+            email = ""
+        # Append an `Alumni` namedtuple for the person to `all_data`
+        all_data.append(Alumni(name, cohort, email)) 
+ 
+    try:
+        # If there is another page of alumni, click the "next" button
+        driver.find_element_by_class_name("pager__item--next").click() 
+        page += 1
+        time.sleep(5) # Pause for not overloading server
+    except:
+        print("Finished with the last page!")
+        flag = False
+ 
+results_df = pd.DataFrame(all_data)
+```

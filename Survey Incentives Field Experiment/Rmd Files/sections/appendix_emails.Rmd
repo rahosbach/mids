@@ -1,0 +1,182 @@
+# Appendix A: Emails
+
+This appendix contains the initial email templates that were sent out to the control and two treatment groups of MIDS alumni on July 2, 2021, as well as the reminder email templates that were sent in subsequent weeks.  Areas in the templates demarcated by "\<\<...\>\>" indicate dynamic fields that are filled in by YAMM as the email gets sent.
+
+## Initial emails sent on July 2, 2021
+
+### Control group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni. Please take a 2-3 minute survey to provide your opinion of the program.  The insights from this survey will help us understand the value of the program as perceived by you, the alumni.
+
+**If you complete the survey, we will send you a summary of the results.**
+
+The deadline to submit your survey response is Friday, July 23, 2021 by midnight (PDT).
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Direct incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni. Please take a 2-3 minute survey to provide your opinion of the program. The insights from this survey will help us understand the value of the program as perceived by you, the alumni. 
+
+**If you complete the survey, we will send you a summary of the results and you will be entered to win an Amazon gift card for \$25. Ten respondents will be selected at random to receive a gift card.**
+
+The deadline to submit your survey response is Friday, July 23, 2021, by midnight (PDT).
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Philanthropic incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni. Please take a 2-3 minute survey to provide your opinion of the program.  The insights from this survey will help us understand the value of the program as perceived by you, the alumni.
+
+**If you complete the survey, we will send you a summary of the results. Additionally, if we achieve a 60% response rate, we will donate \$250 to the Berkeley Student Food Collective.**
+
+The deadline to submit your survey response is Friday, July 23, 2021 by midnight (PDT).
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+
+## Reminder emails sent on July 9 and July 16, 2021
+
+### Control group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have \<\<14 or 7\>\> days left to respond.
+
+**If you complete the survey, we will send you a summary of the results.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Direct incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have \<\<14 or 7\>\> days left to respond. 
+
+**If you complete the survey, we will send you a summary of the results and you will be entered to win an Amazon gift card for \$25. Ten respondents will be selected at random to receive a gift card.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Philanthropic incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have \<\<14 or 7\>\> days left to respond.
+
+**If you complete the survey, we will send you a summary of the results. Additionally, if we achieve a 60% response rate, we will donate \$250 to the Berkeley Student Food Collective.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+
+## Reminder emails sent on July 22, 2021
+
+### Control group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have 1 more day left to respond.
+
+**If you complete the survey, we will send you a summary of the results.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Direct incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have 1 more day left to respond. 
+
+**If you complete the survey, we will send you a summary of the results and you will be entered to win an Amazon gift card for \$25. Ten respondents will be selected at random to receive a gift card.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Philanthropic incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have 1 more day left to respond.
+
+**If you complete the survey, we will send you a summary of the results. Additionally, if we achieve a 60% response rate, we will donate \$250 to the Berkeley Student Food Collective.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+
+## Final reminder emails sent on July 23, 2021
+
+### Control group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have a few hours left to respond.
+
+**If you complete the survey, we will send you a summary of the results.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Direct incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have a few hours left to respond. 
+
+**If you complete the survey, we will send you a summary of the results and you will be entered to win an Amazon gift card for \$25. Ten respondents will be selected at random to receive a gift card.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe
+
+### Philanthropic incentive group
+Hi, \<\<Alumnus Name\>\>:
+
+We are a group of MIDS students conducting research to gather insights on the experience of MIDS alumni.  On July 2nd we sent you a link to a 2-3 minute survey that allows you to provide your opinion of the MIDS program. 
+
+If you have not yet completed the alumni survey, this is a reminder that you have a few hours left to respond.
+
+**If you complete the survey, we will send you a summary of the results. Additionally, if we achieve a 60% response rate, we will donate \$250 to the Berkeley Student Food Collective.**
+
+\textcolor{blue}{Click here to take the survey} and ensure your voice is heard.
+
+Thanks for your time,
+Devesh, Robert, Thomas, and Joe

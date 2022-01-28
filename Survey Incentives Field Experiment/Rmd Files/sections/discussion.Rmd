@@ -1,0 +1,444 @@
+# Results and Discussion
+
+In this section we will discuss our covariate balance checks to validate our randomization; provide estimated ITT, CACE, and HTE effects, and discuss the generalizability of our results.
+
+```{r load_data,echo=FALSE}
+# The script below contains the code to aggregate the data:
+# list of people
+
+dt_roster <- read_csv('../../data/alumni_scrape.csv', col_types=cols()) %>%
+  select(Email = email, Gender = gender, Year_Graduation = year_graduation, 
+         Block = blocking_genderyear_assignments) %>% 
+  mutate(Block = ifelse(
+    Block == 1, "Direct", ifelse(
+      Block == 2, "Philanthropic", "Control")))
+
+# attrition, bounced, round 1 post-send merged status
+r1_g1_bounce <- read_csv('../../data/round1_0702_group1_0702_0941.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) %>%
+  filter(MStatus == 'BOUNCED')
+r1_g2_bounce <- read_csv('../../data/round1_0702_group2_0702_1028.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) %>%
+  filter(MStatus == 'BOUNCED')
+r1_g3_bounce <- read_csv('../../data/round1_0702_group3_0702_1055.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) %>%
+  filter(MStatus == 'BOUNCED')
+
+# final status, sent, opened
+r1_g1_status <- read_csv('../../data/round1_0702_group1_0708_1033.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r1_g2_status <- read_csv('../../data/round1_0702_group2_0708_1220.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r1_g3_status <- read_csv('../../data/round1_0702_group3_0708_1122.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r2_status <- read_csv('../../data/round2_0709_all_0716_1117.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r3_status <- read_csv('../../data/round3_0716_all_0722_1046.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r4_status <- read_csv('../../data/round4_0722_all_0723_1131.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+r5_status <- read_csv('../../data/round5_0723_all_0724_1219.csv', col_types=cols()) %>%
+  select(Email, MStatus = `Merge status`) 
+
+# outcome, Qualtrics completion
+dt_qualtrics <- read_csv('../../data/Qualtrics_downloaded_20210726.csv', col_types=cols()) %>%
+  select(Email = RecipientEmail, Duration = `Duration (in seconds)`,
+         Long = LocationLongitude, Lat = LocationLatitude) %>%
+  slice(3:n()) %>%
+  mutate(Duration = as.numeric(Duration),
+         Long = as.numeric(Long),
+         Lat = as.numeric(Lat))
+
+# emails to exclude
+ex_emails <- c('deveshkhandelwal@berkeley.edu', 'rahosbach@berkeley.edu',
+               'tgao2020@berkeley.edu', 'tgao2020@berkely.edu',
+               'mirza2020@berkeley.edu')
+```
+
+
+```{r combine_data,echo= FALSE}
+
+dt_agg <- 
+  # roster does not contain us
+  dt_roster %>%
+  select(Email) %>%
+  
+  # bounce
+  left_join(bind_rows(r1_g1_bounce, r1_g2_bounce, r1_g3_bounce) %>%
+              add_column(bounce = 1) %>%
+              select(-MStatus),
+            by = 'Email') %>%
+  replace(is.na(.), 0) %>%
+  
+  # non-compliance: email_sent status for all 5 rounds
+  left_join(
+    
+    dt_roster %>% select(Email) %>% add_column(MStatus='EMAIL_SENT') %>%
+      
+      inner_join(r3_status %>% filter(MStatus == 'EMAIL_SENT') %>% select(Email), 
+                 by='Email') %>%
+      inner_join(r4_status %>% filter(MStatus == 'EMAIL_SENT') %>% select(Email), 
+                 by='Email') %>% # 4 & 5 are the same?
+      inner_join(r5_status %>% filter(MStatus == 'EMAIL_SENT') %>% select(Email), 
+                 by='Email') %>%
+      add_column(non_complier = 1) %>%
+      select(-MStatus),
+    by = 'Email') %>%
+  replace(is.na(.), 0) %>%
+  
+  # compliers: people who opened at least 1 round
+  mutate(complier = 1 - (bounce + non_complier)) %>%
+  
+  # completion: qualtrics records
+  left_join(dt_qualtrics %>% select(Email) %>% add_column(completion=1), by = 'Email') %>%
+  replace(is.na(.), 0) %>%
+  
+  # override some incorrect YAMM data
+  # (these two lines correct rows for 4 people, all in the philanthropic group)
+  # vishal, ansjory, taeil.goh, and davidhou
+  mutate(non_complier = if_else(completion == 1, 0, non_complier),
+         complier = if_else(completion == 1, 1, complier)) %>% 
+  
+  # meta data
+  left_join(dt_roster, by = 'Email') %>%
+  left_join(dt_qualtrics, by = 'Email') 
+
+```
+
+## Checks and balances 
+
+We checked for covariate balance to validate our randomization, which ensures a proper "apples-to-apples" comparison. Our block randomization ensures balance in inferred gender and graduation year among our three groups; so, here we used the YAMM data to analyze the balance of compliers, attriters and non-compliers between groups. Figure \@ref(fig:Graphical-Representation) plots the number of attriters, non-compliers, and compilers for each group. By visual inspection, we see balance between the groups. 
+
+```{r cov_balance, echo=FALSE}
+
+dt_cb <- dt_agg %>% 
+  select(Block, bounce, non_complier, complier, completion)  %>%
+  data.table()
+
+cb1 <- dt_cb[, lm(bounce~Block)]
+cb2 <- dt_cb[, lm(non_complier~Block)]
+cb3 <- dt_cb[, lm(complier~Block)]
+
+# Calculate robust SEs for models
+cb1se <- sqrt(diag(vcovHC(cb1)))
+cb2se <- sqrt(diag(vcovHC(cb2)))
+cb3se <- sqrt(diag(vcovHC(cb3)))
+
+```
+
+```{r Graphical-Representation, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = "Stacked bar chart showing number of attriters, compliers, and non-compliers in each group", fig.align="center"}
+
+dt_agg %>% 
+  select(Block, bounce, non_complier, complier, completion) %>%
+  gather(measure, value, -Block) %>%
+  group_by(Block, measure) %>%
+  ungroup() %>%
+  filter(measure != 'completion') %>%
+  mutate(measure = recode_factor(measure, 
+                                 bounce = "Email Bounced (Attrition)", 
+                                 non_complier = 'Did Not Open (Non-Complier)',
+                                 complier = "Opened Email (Complier)")) %>%
+  # plotting
+  ggplot(aes(x=Block, y=value, fill=measure)) +
+  geom_col() +
+  labs(x='Treatment Group', y='Count', title='Covariate Balance Check',
+       fill='Status') +
+  scale_fill_brewer(palette = 'Accent') +
+  theme_bw()
+
+```
+
+More formally, Table 4 provides the results of a regression analysis of attrition, non-compliance, and compliance on the group assignment.^[Robust standard errors are provided in this regression table as well as the forthcoming regression tables.] As shown by the lack of statistically significant coefficients, we did not find statistically significantly different results between the control and two treatment groups in this analysis.
+
+\newpage
+\begin{center}Table 4: Covariate balance regression analysis results\end{center}
+```{r covariate-balance-check-stargazer-save , echo=FALSE, comment='', fig.align="center"}
+
+stargazer(cb1, cb2, cb3, 
+        type="text",
+        se=list(cb1se, cb2se, cb3se),
+        omit.stat = c('ser', 'adj.rsq'),
+        title = "Covariate Balance Check",
+        covariate.labels = c("Group: Direct", 
+                             "Group: Philanthropic",
+                             "Constant"),
+        dep.var.labels = c("Attrition", 'Non-Compliance', 'Compliance'))
+```
+
+## Non-compliance
+
+As with any survey campaign, we had non-compliance issues. Our experiment is only impacted by *one-sided non-compliance*, whereby some participants assigned to a particular treatment did not receive that treatment (*i.e.*, the participant received but did not open the email), but no participants assigned to control received either of the treatments. This is because we sent personalized emails to each participant with email text specific to the group to which we assigned the participant.
+
+With this one-sided non-compliance in mind, we calculate the following treatment effects in the subsequent sections:
+
+* Intent-to-treat effects
+* Complier-average causal effects
+* Heterogeneous treatment effects
+
+### Intent-to-treat effects
+
+The goal of our experiment is to determine the average treatment effect (ATE); however, due to practical challenges such as non-compliance, it is not always possible to obtain an accurate measure of the ATE. We start by estimating the ITT, which is the effect of treatment *assignment* on outcome, ignoring non-compliance. Mathematically, we define ITT as:
+
+$$ ITT = E[Y_i(z = 1)] - E[Y_i(z = 0)]$$
+
+where $z$ denotes assignment to one of the experimental groups.  After removing the attriters, we perform two regressions to estimate the ITT effect. First, the survey completion variable is regressed on the group assignment variable, using the control group as the reference. We also perform a second regression, which additionally incorporates inferred gender and graduation year covariates.  Table 5 summarizes the regression results. 
+
+```{r ITT Calculation , echo=FALSE}
+#The code chunk below calculates the regression .
+d <- data.table(dt_agg)
+
+# Generate models
+m1 <- d[bounce == 0 , lm(completion ~ Block)]
+m2 <- d[bounce == 0 , lm(completion ~ Block + Gender + factor(Year_Graduation))]
+
+# Calculate robust SEs for both models
+rse1 <- sqrt(diag(vcovHC(m1)))
+rse2 <- sqrt(diag(vcovHC(m2)))
+
+```
+
+\newpage
+\begin{center}Table 5: Intent-to-treat regression analysis results\end{center}
+```{r stargazer ITT,comment='',echo=FALSE, fig.align="center"}
+stargazer(m1, m2, 
+          type="text",
+          se = list(rse1, rse2),
+          
+          #no.space = T, 
+          omit.stat = c('ser', 'f', 'adj.rsq'),
+          omit = c('Gender', 'Year_Graduation'),
+          add.lines = list(c('Gender Fixed Effects?', 'No', 'Yes'),
+                           c('Cohort Fixed Effects?', 'No', 'Yes')),
+          
+          title = "ITT Estimate with Attriters Removed",
+          covariate.labels = c("Group: Direct", "Group: Philanthropic",
+                               #"Gender: Male", "Gender: Unknown",
+                               #"Cohort: 2016", "Cohort: 2017",
+                               #"Cohort: 2018", "Cohort: 2019",
+                               #"Cohort: 2020", "Cohort: 2021",
+                               "Constant"),
+          dep.var.labels = "Survey Completion")
+
+```
+&nbsp;
+
+Below, we provide a list of our key findings from the ITT analysis (specifically, for the second model that includes cohort and gender fixed effects):
+
+* Direct incentive reduced the likelihood to complete the survey by `r round(abs(m2$coefficients[2]*100),1)`% (relative to control), with a 95% confidence interval of [`r round((m2$coefficients[2]-(1.96*rse1[2]))*100, 1)`%, `r round((m2$coefficients[2]+(1.96*rse1[2]))*100, 1)`%].
+* Philanthropic incentive reduced the likelihood of completion by `r round(abs(m2$coefficients[3]*100),1)`% (relative to control), with a 95% confidence interval of [`r round((m2$coefficients[3]-(1.96*rse1[3]))*100, 1)`%, `r round((m2$coefficients[3]+(1.96*rse1[3]))*100, 1)`%].
+* The direct incentive ITT effect is statistically significant at the 10% significance level, whereas the philanthropic incentive ITT effect is not statistically significant.
+* The coefficients and standard errors are approximately the same for the two models, which provides validation that block randomization worked as we expected.
+
+### Complier-average causal effects
+
+The presence of non-compliers in our experiment mean that our causal estimates from the ITT analysis are diluted relative to the causal estimates we would obtain if only considering compliers.  Ultimately, we want to estimate the causal effect of our treatments on those alumni who did comply with our experiment.  To do this, we calculate the CACE:
+
+$$ CACE = E[Y_i(d = 1) -Y_i(d = 0)|d_i(1)=1] $$
+
+Based on our non-interference and exclusion restriction assumptions, we obtain an unbiased estimate of the CACE using the following equations:
+
+$$ ITT_D = E[d_i(z = 1)- d_i(z = 0)] $$
+
+$$ CACE = ITT/ ITT_D $$
+
+
+We calculate the CACE by first calculating the take-up rate, $ITT_D$, which is the proportion of compliers in each group. We then scale the estimated ITT effects by the take-up rate.  As shown in Table 6, we observed take-up rates of approximately 60% in both treatment groups, which scales our estimated ITT effects by a factor of roughly 1.7.
+
+&nbsp;
+\begin{center}Table 6: Complier-average causal effect calculation\end{center}
+```{r cace, comment='', echo=FALSE, fig.align="center"}
+# The chunk below shows the r code to calculate the CACE
+# Calculate the CACE for each treatment group manually
+ittd_direct <- 
+  d[bounce == 0 & Block == "Direct" & complier == 1, .N] /
+  d[bounce == 0 & Block == "Direct" , .N]
+ittd_philanthropic <- 
+  d[bounce == 0 & Block == "Philanthropic" & complier == 1, .N] /
+  d[bounce == 0 & Block == "Philanthropic" , .N]
+
+cace_direct <- m2$coefficients['BlockDirect'] / ittd_direct
+cace_philanthropic <- m2$coefficients['BlockPhilanthropic'] / ittd_philanthropic
+
+cace_table <- 
+  data.table(Treatment = c('Direct', 'Philanthropic'),
+             ITT = m2$coefficients[c('BlockDirect', 'BlockPhilanthropic')],
+             ITTd = c(ittd_direct, ittd_philanthropic),
+             CACE = c(cace_direct, cace_philanthropic))
+
+
+# Generate IV regression models
+d[ , treated := complier * (Block != "Control")]
+ivmod_direct <- d[bounce == 0 & Block != "Philanthropic",
+                  ivreg(completion ~ treated | Block)]
+ivmod_philanthropic <- d[bounce == 0 & Block != "Direct",
+                         ivreg(completion ~ treated | Block)]
+
+# Calculate robust SEs for the IV regression models
+rseiv_direct <- sqrt(diag(vcovHC(ivmod_direct)))
+rseiv_philanthropic <- sqrt(diag(vcovHC(ivmod_philanthropic)))
+
+stargazer(cace_table, type = 'text', 
+          summary = F, rownames = F,
+          title = 'CACE = ITT / ITTd')
+
+```
+  
+In addition to calculating the CACE using the ratio of ITT to the take-up rate, we also calculate the CACE using instrumental variables (IV) regression.  We developed separate IV regression models for each treatment group, where the outcome variable (*i.e.*, survey completion) is regressed on a binary indicator of treatment, using the group assignment as the instrument.  Table 7 shows the results of these IV models.
+
+&nbsp;
+\begin{center}Table 7: Complier-average causal effect calculation using instrumental variables regression\end{center}
+```{r Stargazer CACE, comment='',echo= FALSE, fig.align="center"}
+
+stargazer(ivmod_direct, ivmod_philanthropic, 
+          type="text",
+          se = list(rseiv_direct, rseiv_philanthropic),
+          
+          omit.stat = c('rsq', 'adj.rsq', 'ser'),
+          
+          title = "CACE (IVreg) Estimate with Attriters Removed",
+          dep.var.labels = "Survey Completion",
+          covariate.labels = 'Treated',
+          column.labels = c("Direct", "Philanthropic"))
+
+```
+&nbsp;
+  
+Below, we provide a list of our key findings from the CACE analysis:
+
+* Direct incentive reduced the likelihood to complete the survey by `r round(abs(ivmod_direct$coefficients[2]*100),1)`% (relative to control), with a 95% confidence interval of [`r round((ivmod_direct$coefficients[2]-(1.96*rseiv_direct[2]))*100, 1)`%, `r round((ivmod_direct$coefficients[2]+(1.96*rseiv_direct[2]))*100, 1)`%].
+* Philanthropic incentive reduced the likelihood of completion by `r round(abs(ivmod_philanthropic$coefficients[2]*100),1)`% (relative to control), with a 95% confidence interval of [`r round((ivmod_philanthropic$coefficients[2]-(1.96*rseiv_philanthropic[2]))*100, 1)`%, `r round((ivmod_philanthropic$coefficients[2]+(1.96*rseiv_philanthropic[2]))*100, 1)`%].
+* The direct incentive CACE is statistically significant at the 10% significance level, whereas the philanthropic incentive CACE is not statistically significant. 
+
+### Heterogeneous treatment effects
+
+We calculated heterogeneous treatment effects (HTEs) to determine whether response rates differed between specific subgroups.  Due to the non-random nature of subgroup analyses, one should not interpret the effect estimates presented in this section as strictly causal effects.  Nevertheless, this analysis could point to subgroups that appear more likely to respond to our treatments which may inform follow-up research.
+
+Table 8 shows the results of our HTE analysis for inferred gender subgroups, where we excluded those with an "unknown" gender designation for simplicity.
+
+```{r hte, echo = FALSE}
+
+# HTE for different gender
+m3 <- d[bounce == 0 & Gender != 'U', lm(completion ~ Gender * Block)]
+rse3 <- sqrt(diag(vcovHC(m3)))
+
+# HTE for different gender, controlling for cohort effect
+m4 <- d[bounce == 0 & Gender != 'U', lm(completion ~ Gender * Block + factor(Year_Graduation))]
+rse4<- sqrt(diag(vcovHC(m4)))
+```
+
+
+```{r hte_2 , echo= FALSE}
+
+# HTE between grad year and treatment
+m5 <- d[bounce == 0 & Gender != 'U', lm(completion ~ factor(Year_Graduation) * Block)]
+rse5 <- sqrt(diag(vcovHC(m5)))
+
+
+m6 <- d[bounce == 0 & Gender != 'U', lm(completion ~ factor(Year_Graduation) * Block + Gender)]
+rse6 <- sqrt(diag(vcovHC(m6)))
+
+```
+
+&nbsp;
+\begin{center}Table 8: Heterogeneous treatment effect results for inferred gender subgroups\end{center}
+
+```{r stargazer gender , comment='', echo = FALSE, fig.align="center"}
+
+stargazer(m3, m4,
+          type="text",
+          se = list(rse3, rse4),
+          
+          no.space = T,
+          omit.stat = c('ser', 'f', 'adj.rsq'),
+          omit = c('Year_Graduation'),
+          add.lines = list(c('Cohort Fixed Effects?', 'No', 'Yes'),
+                           c('Excl. Gender Unknown?', 'Yes', 'Yes')),
+
+          title = "Heterogeneous Treatment Effect",
+          covariate.labels = c('Male',
+                               'Group: Direct', 'Group: Philanthropic',
+                               'Male + Direct', 'Male + Philanthropic',
+                               "Constant"),
+          dep.var.labels = "Survey Completion")
+
+```
+&nbsp;
+  
+The difference between the two models shown in Table 8 is that the second model includes graduation year fixed effects.  Importantly, none of the interaction terms in either model are statistically significant, indicating that the HTEs we observe on gender are statistically indistinguishable from random chance.
+
+To facilitate interpretation, we provide an explanation of the first, simpler model. Based on Table 8, the resulting model equation is:
+
+$$ 
+\begin{aligned}
+Y = & \ 0.216 + (0.072 * Male) - (0.025 * Direct) + (0.023 * Philanthropic) - (0.056 * Male * Direct) \\
+    &- (0.074 * Male * Philanthropic) + \epsilon
+\end{aligned}
+$$
+
+where:
+
+* $Male$ = a dummy variable for gender, 
+* $Direct$ = a dummy variable for the direct incentive group,
+* $Philanthropic$ = a dummy variable for the philanthropic incentive group, and
+* $\epsilon$ = the error term.
+
+Some conclusions from this model include:
+
+* Females in the control group had a `r round(m3$coefficients[1] * 100, 1)`% response rate, whereas men in the control group had a `r round((m3$coefficients[1] + m3$coefficients[2]) * 100, 1)`% response rate.
+* Females in the direct incentive group had a slightly lower response rate than females in the control group, but females in the philanthropic incentive group had a slightly higher response rate.
+* Compared to men in the control group, men in both incentive groups had lower response rates.
+
+We also performed an HTE analysis on graduation year subgroups and evaluated both models using F-tests to determine if any of the interaction models are better at explaining the variance of the response rates compared to models without interaction terms (_i.e._, models that do not include HTEs).  Table 9 and Table 10 show the results of these F-tests. 
+
+```{r hte_f_tests, echo=FALSE, comment=''}
+
+# F-test on gender
+anova_gender<- anova(
+  d[bounce == 0 & Gender != 'U', lm(completion ~ Gender + Block)],
+  d[bounce == 0 & Gender != 'U', lm(completion ~ Gender * Block)],
+  test = "F"
+)
+
+# F-test on graduation year
+anova_coh<- anova(
+  m5 <- d[bounce == 0 & Gender != 'U', lm(completion ~ factor(Year_Graduation) + Block)],
+  m5 <- d[bounce == 0 & Gender != 'U', lm(completion ~ factor(Year_Graduation) * Block)],
+  test = "F"
+)
+```
+
+&nbsp;
+\begin{center}Table 9: F-test on inferred gender interaction terms \end{center}
+```{r anova-gender, echo=FALSE, fig.align="center", comment=''}
+anova_gender
+```
+
+&nbsp;
+\begin{center}Table 10: F-test on graduation year interaction terms \end{center}
+```{r anova-grad, echo=FALSE, fig.align="center", comment=''}
+anova_coh
+```
+
+The p-values for both F-tests are greater than 0.05, indicating that including interaction terms does not statistically significantly improve the models at a 5% significance level, when compared to analogous models that omit the interaction terms.
+
+Please refer to Appendix D for the detailed results of the HTE analysis on graduation year.
+
+## Summary of results
+
+Our ITT and CACE estimates, while not statistically significant at the 5% significance level, indicated negative treatment effects for the direct and philanthropic incentive groups. This is contrary to our hypothesis that the incentives would motivate MIDS alumni to respond to the surveys at a higher rate when compared to the control group. This result could be due to a number of reasons, including:
+
+* MIDS is a graduate degree program with a vast majority of people working full-time. Therefore, \$25 might not be enough of an incentive to encourage higher response rates.
+* Similarly, MIDS alumni may have perceived a donation of only \$250 to the BSFC as inadequate to really make a difference.
+* The email body text was longer for the direct and philanthropic groups than for the control group. Due to busy schedules and the fact that many MIDS alumni may have read their emails on a hand-held device (which is more arduous to read a longer email on than a computer monitor), having a longer body of text may have effectively discouraged alumni in the treatment groups from taking the time to take on another task and complete the survey.
+
+MIDS is a professional degree program through the School of Information at UC Berkeley. Our experiment was targeted exclusively at MIDS alumni and the "call to action" was to provide feedback to improve the overall MIDS program. With that in mind, we do not expect our results to generalize well.  While our results may generalize to near-term future MIDS cohorts, we do not expect the results to generalize to other universities, or even UC Berkeley and other I School programs (due to the specific nature of the MIDS program).  The results might also not even generalize to other professional degree programs. This is because we expect that the response rate is influenced by overall experience of the students. We recommend follow-up studies with a mix of students in part-time and full-time degree programs, as well as investigations into the right degree of incentives to encourage higher survey response rates.
+
+
+
+
+
+
+
+
+
+

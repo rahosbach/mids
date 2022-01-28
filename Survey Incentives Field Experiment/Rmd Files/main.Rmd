@@ -1,0 +1,71 @@
+---
+title: "Incentives and Engagement: A Field Experiment to Evaluate the Effect of Survey Incentives on MIDS Alumni"
+author: "Robert Hosbach, Devesh Khandelwal, Joe Mirza, Thomas Gao"
+date: "DATASCI W241 | Summer 2021"
+bibliography: mybibfile.bib
+csl: apa-6th-edition.csl
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: no
+    toc: no
+header-includes:
+- \usepackage{amsmath}
+- \usepackage{sectsty} \allsectionsfont{\left}
+- \usepackage{float}
+- \floatplacement{figure}{H}
+- \floatplacement{table}{H}
+---
+
+```{r setup, warning=FALSE, echo=FALSE, include=FALSE}
+library(data.table)
+library(kableExtra)
+library(magrittr)
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(stargazer)
+library(sandwich)
+library(lmtest)
+library(AER) # for IV regression
+
+knitr::opts_chunk$set(echo = TRUE)
+options(knitr.table.format = "latex")
+```
+
+```{r, child='sections/abstract.Rmd'}
+```
+
+\newpage
+```{r, child='sections/introduction.Rmd'}
+```
+
+```{r, child='sections/methodology.Rmd'}
+```
+
+```{r, child='sections/discussion.Rmd'}
+```
+
+```{r, child='sections/conclusion.Rmd'}
+```
+
+\newpage
+# References
+<div id="refs"></div>
+
+\newpage
+```{r, child='sections/appendix_emails.Rmd'}
+```
+
+\newpage
+```{r, child='sections/appendix_python.Rmd'}
+```
+
+
+\newpage
+```{r, child='sections/appendix_survey_results.Rmd'}
+```
+
+\newpage
+```{r, child='sections/appendix_aggregate_interaction.Rmd'}
+```
